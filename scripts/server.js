@@ -8,8 +8,8 @@ const SERVER_MODES = {
 
 const args = getArgs();
 
+// Default to production mode
 if (typeof args.mode === "undefined") {
-    // default to production mode
     args.mode = "production";
 }
 
@@ -19,15 +19,13 @@ if (args.mode !== "production" && args.mode !== "development") {
 
 const server_mode = args.mode === "production" ? SERVER_MODES.PRODUCTION : SERVER_MODES.DEVELOPMENT;
 
+const port = process.env.PORT || 8080;
+
 if (server_mode === SERVER_MODES.DEVELOPMENT) {
-    let startFrontendDevServer = (await import("./server-frontend-dev.js")).startFrontendDevServer;
+    const { startFrontendDevServer } = await import("./server-frontend-dev.js");
     console.info("Starting server in development mode.");
-    startFrontendDevServer(8080, function () {
-        // this time, it's the frontend server that is on port 8080
-        // requests for the backend will be proxied to prevent cross origins errors
-        startBackendServer(3000);
-    });
+    startFrontendDevServer(8080, () => startBackendServer(3000));
 } else {
-    console.info("Starting server in production mode.");
-    startBackendServer(process.env.PORT || 8080);
+    console.info(`Starting server in production mode on port ${port}.`);
+    startBackendServer(port);
 }
